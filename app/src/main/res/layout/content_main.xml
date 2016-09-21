@@ -13,7 +13,18 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
+        android:id="@+id/songtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="@string/song"
+        android:textSize="72dp" />
+    <TextView
+        android:id="@+id/artisttext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/artist"
+        android:layout_below="@+id/songtext"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="38dp"
+        android:textSize="72dp" />
 </RelativeLayout>
