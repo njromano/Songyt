@@ -14,6 +14,12 @@ public class Song {
         this.title = title;
     }
 
+    public Song()
+    {
+        this.artist = null;
+        this.title = null;
+    }
+
     public String getArtist()
     {
         return this.artist;

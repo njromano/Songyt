@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private String ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE";
     private TextView mSongText, mArtistText;
     private NotificationReceiver nReceiver;
+    private Song mSong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,13 +34,15 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
                 Intent i = new Intent(ACTION_SERVICE);
                 i.putExtra("command", "getSong");
                 sendBroadcast(i);
             }
         });
+
+        mSong = new Song();
 
         mSongText = (TextView) findViewById(R.id.songtext);
         mArtistText = (TextView) findViewById(R.id.artisttext);
@@ -98,8 +101,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent)
         {
-            mSongText.setText(intent.getStringExtra("song_title"));
-            mArtistText.setText(intent.getStringExtra("artist_name"));
+            if(intent.hasExtra("error"))
+            {
+                Snackbar.make(mSongText, "Error: " + intent.getStringExtra("error"),
+                        Snackbar.LENGTH_LONG)
+                        .show();
+            }
+            else
+            {
+                mSong.setTitle(intent.getStringExtra("song_title"));
+                mSong.setArtist(intent.getStringExtra("artist_name"));
+                mSongText.setText(mSong.getTitle());
+                mArtistText.setText(mSong.getArtist());
+            }
         }
     }
 }

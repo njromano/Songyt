@@ -44,21 +44,13 @@ public class NotificationListener extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn)
     {
-        Log.d(TAG, "NOTIFICATION RECEIVED: " + sbn.getPackageName() + " posted\n");
-        Log.d(TAG, "-----------------Song  " + sbn.getNotification().extras.get("android.title") + "\n");
-        Log.d(TAG, "---------------Artist  " + sbn.getNotification().extras.get("android.text") + "\n");
-        Intent i = new Intent(ACTION_LISTENER);
-        i.putExtra("notification_event", "onNotificationPosted: " + sbn.getPackageName() + "\n");
-        sendBroadcast(i);
+        // not needed in this implementation
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn)
     {
-        Log.d(TAG, "NOTIFICATION RECIEVED: " + sbn.getPackageName() + " removed\n");
-        Intent i = new Intent(ACTION_LISTENER);
-        i.putExtra("notification_event", "onNotificationRemoved: " + sbn.getPackageName() + "\n");
-        sendBroadcast(i);
+        // not needed in this implementation
     }
 
     @Override
@@ -76,16 +68,36 @@ public class NotificationListener extends NotificationListenerService {
         {
             if(intent.getStringExtra("command").equals("getSong"))
             {
+                boolean songFound = false;
+                // search in current active notifications and broadcast the first result known to be
+                // from a music application to the notification listener in MainActivity
                 for(StatusBarNotification sbn : NotificationListener.this.getActiveNotifications())
                 {
+                    // Look for songs being played by Google Play Music.
+                    // Notification extras:
+                    //  android.title - song title
+                    //  android.text - artist name
                     if (sbn.getPackageName().equals("com.google.android.music"))
                     {
+                        String songTitle = (String) sbn.getNotification().extras.get("android.title");
+                        String artistName = (String) sbn.getNotification().extras.get("android.text");
+
+                        Log.d(TAG, "SONG FOUND: " + artistName + " - " + songTitle + "\n");
                         Intent i = new Intent(ACTION_LISTENER);
-                        i.putExtra("song_title", sbn.getNotification().extras.get("android.title").toString());
-                        i.putExtra("artist_name", sbn.getNotification().extras.get("android.text").toString());
+                        i.putExtra("song_title", songTitle);
+                        i.putExtra("artist_name", artistName);
                         sendBroadcast(i);
-                        break;
+
+                        songFound = true;
                     }
+                }
+
+                // send an error message to MainActivity if a song was not found
+                if(!songFound)
+                {
+                    Intent noSongIntent = new Intent(ACTION_LISTENER);
+                    noSongIntent.putExtra("error", "No song found to be playing.");
+                    sendBroadcast(noSongIntent);
                 }
             }
         }
