@@ -110,6 +110,7 @@ public class NotificationListener extends NotificationListenerService {
 
                         songFound = true;
                     }
+                    // TODO what the hell is happening with Pandora??
                     else if(sbn.getPackageName().equals("com.pandora.android"))
                     {
                         Log.d(TAG, "PANDORA: " + sbn.getNotification().extras.toString());
