@@ -77,10 +77,12 @@ public class NotificationListener extends NotificationListenerService {
                     // Notification extras:
                     //  android.title - song title
                     //  android.text - artist name
+                    String songTitle = " ";
+                    String artistName = " ";
                     if (sbn.getPackageName().equals("com.google.android.music"))
                     {
-                        String songTitle = (String) sbn.getNotification().extras.get("android.title");
-                        String artistName = (String) sbn.getNotification().extras.get("android.text");
+                        songTitle = (String) sbn.getNotification().extras.get("android.title");
+                        artistName = (String) sbn.getNotification().extras.get("android.text");
 
                         Log.d(TAG, "SONG FOUND: " + artistName + " - " + songTitle + "\n");
                         Intent i = new Intent(ACTION_LISTENER);
@@ -89,6 +91,28 @@ public class NotificationListener extends NotificationListenerService {
                         sendBroadcast(i);
 
                         songFound = true;
+                    }
+                    // Look for songs being played by Spotify
+                    // Notifications dictated by "tickerText"
+                    // "Song — Artist"
+                    else if (sbn.getPackageName().equals("com.spotify.music"))
+                    {
+                        //Log.d(TAG, "SPOTIFY: " + sbn.getNotification().tickerText.toString());
+                        String[] tickerText = sbn.getNotification().tickerText.toString().split("—");
+                        songTitle = tickerText[0];
+                        artistName = tickerText[1];
+
+                        Log.d(TAG, "SONG FOUND: " + artistName + " - " + songTitle + "\n");
+                        Intent i = new Intent(ACTION_LISTENER);
+                        i.putExtra("song_title", songTitle);
+                        i.putExtra("artist_name", artistName);
+                        sendBroadcast(i);
+
+                        songFound = true;
+                    }
+                    else if(sbn.getPackageName().equals("com.pandora.android"))
+                    {
+                        Log.d(TAG, "PANDORA: " + sbn.getNotification().extras.toString());
                     }
                 }
 

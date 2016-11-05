@@ -1,9 +1,12 @@
 package com.njromano.songyt;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -31,6 +34,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
+
 public class MainActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     private String ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER";
@@ -48,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        startActivity(new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS));
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(ACTION_SERVICE);
                 i.putExtra("command", "getSong");
                 sendBroadcast(i);
+                //toggleNotificationListenerService();
             }
         });
 
@@ -103,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                             else
                             {
-                                mLinkText.setText("https://www.youtube.com/watch?v="
-                                        + mYTResources.get(0).getVideoId());
+                                String url = "https://www.youtube.com/watch?v="
+                                    + mYTResources.get(0).getVideoId();
+                                mLinkText.setText(url);
+                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                             }
                         }catch (JSONException e)
                         {
@@ -119,6 +129,14 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, error.toString());
                     }
                 });
+    }
+
+    private void toggleNotificationListenerService() {
+        Log.d(TAG, "toggleNotificationListenerService() called");
+        ComponentName thisComponent = new ComponentName(this, /*getClass()*/ NotificationListener.class);
+        PackageManager pm = getPackageManager();
+        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
 
     public void makeSnackbar(String text)

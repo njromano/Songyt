@@ -15,24 +15,33 @@
     <TextView
         android:id="@+id/songtext"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="@string/song"
-        android:textSize="72sp" />
+        android:textSize="36sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_height="120sp"
+        android:textAlignment="textStart" />
+
     <TextView
         android:id="@+id/artisttext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="120sp"
         android:text="@string/artist"
+        android:textSize="36sp"
         android:layout_below="@+id/songtext"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="38dp"
-        android:textSize="72sp" />
+        android:textAlignment="textStart" />
+
     <TextView
         android:id="@+id/linktext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/link"
-        android:layout_below="@id/artisttext"
         android:linksClickable="true"
-        android:autoLink="web" />
+        android:autoLink="web"
+        android:textAlignment="textStart"
+        android:layout_below="@+id/artisttext"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>
