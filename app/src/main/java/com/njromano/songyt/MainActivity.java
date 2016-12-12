@@ -8,8 +8,10 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -53,8 +55,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        startActivity(new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS));
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,6 +79,34 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_LISTENER);
         registerReceiver(nReceiver, filter);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        checkIfNotificationsEnabled();
+    }
+
+    private void checkIfNotificationsEnabled()
+    {
+        boolean notificationsEnabled = Settings.Secure
+                .getString(this.getContentResolver(),"enabled_notification_listeners")
+                .contains(getApplicationContext().getPackageName());
+        Log.d(TAG, "notificationsEnabled = " + String.valueOf(notificationsEnabled));
+        if(!notificationsEnabled)
+        {
+            final Snackbar snackBar = Snackbar.make(mSongText,
+                    "Please allow Songyt access to device notifications.",
+                    Snackbar.LENGTH_INDEFINITE);
+            snackBar.setAction("SETTINGS", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            startActivity(new Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                            snackBar.dismiss();
+                        }
+                    }).show();
+        }
     }
 
     private void getYoutubeInfo()
