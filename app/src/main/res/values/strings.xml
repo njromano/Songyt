@@ -6,4 +6,7 @@
     <string name="artist">Artist</string>
     <string name="link">Link?</string>
     <string name="songyt_button_text">SONGYT</string>
+    <string name="songyt_hint_1">Tap the search button to find the currently playing song on YouTube.</string>
+    <string name="songyt_status_1">Ready to find song on YouTube…</string>
+    <string name="songyt_status_2">Song found! Pulling up YouTube…</string>
 </resources>

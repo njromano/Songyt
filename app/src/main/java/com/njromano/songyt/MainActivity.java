@@ -40,14 +40,14 @@ import java.util.Map;
 
 import static android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
 
-// TODO: cull extraneous views
+// TODO: create cohesive walkthrough of user flow
 
 public class MainActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     private String ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER";
     private String ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE";
     private TextView mSongText, mArtistText, mLinkText;
-    private Button mSongytButton;
+    private TextView mSongytStatusText;
     private NotificationReceiver nReceiver;
     private Song mSong;
     private StringRequest mYTRequest;
@@ -61,10 +61,10 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mSongytButton = (Button) findViewById(R.id.songytbutton);
+        mSongytStatusText = (TextView) findViewById(R.id.songyt_status_text);
         mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        mSongytButton.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -77,12 +77,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         mSong = new Song();
         mYTResources = new ArrayList<>();
 
-        mSongText = (TextView) findViewById(R.id.songtext);
-        mArtistText = (TextView) findViewById(R.id.artisttext);
-        mLinkText = (TextView) findViewById(R.id.linktext);
+        //mSongText = (TextView) findViewById(R.id.songtext);
+        //mArtistText = (TextView) findViewById(R.id.artisttext);
+        //mLinkText = (TextView) findViewById(R.id.linktext);
 
         nReceiver = new NotificationReceiver();
         IntentFilter filter = new IntentFilter();
@@ -94,18 +95,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume()
     {
         super.onResume();
+        hideLoading();
         checkIfNotificationsEnabled();
     }
 
     private void showLoading()
     {
-        mSongytButton.setVisibility(View.INVISIBLE);
+        mSongytStatusText.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
     private void hideLoading()
     {
-        mSongytButton.setVisibility(View.VISIBLE);
+        mSongytStatusText.setVisibility(View.VISIBLE);
         mProgressBar.setVisibility(View.INVISIBLE);
     }
 
@@ -117,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "notificationsEnabled = " + String.valueOf(notificationsEnabled));
         if(!notificationsEnabled)
         {
-            final Snackbar snackBar = Snackbar.make(mSongText,
+            mSongytStatusText.setText(null);
+            final Snackbar snackBar = Snackbar.make(mSongytStatusText,
                     "Please allow Songyt access to device notifications.",
                     Snackbar.LENGTH_INDEFINITE);
             snackBar.setAction("SETTINGS", new View.OnClickListener() {
@@ -127,6 +130,11 @@ public class MainActivity extends AppCompatActivity {
                             snackBar.dismiss();
                         }
                     }).show();
+        }
+        else
+        {
+            mSongytStatusText.setText(R.string.songyt_status_1);
+            Snackbar.make(mSongytStatusText, R.string.songyt_hint_1, Snackbar.LENGTH_LONG).show();
         }
     }
 
@@ -148,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response)
                     {
-                        hideLoading();
                         Log.d(TAG, response);
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
@@ -163,14 +170,15 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 String url = "https://www.youtube.com/watch?v="
                                     + mYTResources.get(0).getVideoId();
-                                mLinkText.setText(url);
+                                //mLinkText.setText(url);
                                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                                hideLoading();
                             }
                         }catch (JSONException e)
                         {
                             hideLoading();
                             e.printStackTrace();
-                            Snackbar.make(mSongytButton, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(mSongytStatusText, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -180,36 +188,9 @@ public class MainActivity extends AppCompatActivity {
                         hideLoading();
                         error.printStackTrace();
                         Log.d(TAG, error.toString());
-                        Snackbar.make(mSongytButton, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(mSongytStatusText, "Sorry, an error has occurred. Please check your internet connection and try again.", Snackbar.LENGTH_LONG).show();
                     }
                 });
-    }
-
-    private void toggleNotificationListenerService() {
-        Log.d(TAG, "toggleNotificationListenerService() called");
-        ComponentName thisComponent = new ComponentName(this, /*getClass()*/ NotificationListener.class);
-        PackageManager pm = getPackageManager();
-        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-    }
-
-    public void makeSnackbar(String text)
-    {
-        Snackbar.make(mArtistText, text, Snackbar.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-        //startService(new Intent(getApplicationContext(), NotificationListener.class));
-    }
-
-    @Override
-    public void onStop()
-    {
-        //stopService(new Intent(getApplicationContext(), NotificationListener.class));
-        super.onStop();
     }
 
     @Override
@@ -219,28 +200,6 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(nReceiver);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     class NotificationReceiver extends BroadcastReceiver
     {
         @Override
@@ -248,16 +207,18 @@ public class MainActivity extends AppCompatActivity {
         {
             if(intent.hasExtra("error"))
             {
-                Snackbar.make(mSongytButton, "Error: " + intent.getStringExtra("error"),
+                hideLoading();
+                Snackbar.make(mSongytStatusText, "Error: " + intent.getStringExtra("error"),
                         Snackbar.LENGTH_LONG)
                         .show();
             }
             else
             {
+                mSongytStatusText.setText(R.string.songyt_status_2);
                 mSong.setTitle(intent.getStringExtra("song_title"));
                 mSong.setArtist(intent.getStringExtra("artist_name"));
-                mSongText.setText(mSong.getTitle());
-                mArtistText.setText(mSong.getArtist());
+                //mSongText.setText(mSong.getTitle());
+                //mArtistText.setText(mSong.getArtist());
                 getYoutubeInfo();
                 MySingleton.getInstance(getApplicationContext()).addToRequestQueue(mYTRequest);
                 Log.d(TAG,mYTRequest.toString());
