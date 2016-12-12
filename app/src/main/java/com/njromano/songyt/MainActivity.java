@@ -18,6 +18,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -38,15 +40,19 @@ import java.util.Map;
 
 import static android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
 
+// TODO: cull extraneous views
+
 public class MainActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     private String ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER";
     private String ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE";
     private TextView mSongText, mArtistText, mLinkText;
+    private Button mSongytButton;
     private NotificationReceiver nReceiver;
     private Song mSong;
     private StringRequest mYTRequest;
     private ArrayList<YTResource> mYTResources;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +61,10 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mSongytButton = (Button) findViewById(R.id.songytbutton);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mSongytButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -64,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(ACTION_SERVICE);
                 i.putExtra("command", "getSong");
                 sendBroadcast(i);
+                showLoading();
                 //toggleNotificationListenerService();
             }
         });
@@ -86,6 +95,18 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
         checkIfNotificationsEnabled();
+    }
+
+    private void showLoading()
+    {
+        mSongytButton.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading()
+    {
+        mSongytButton.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.INVISIBLE);
     }
 
     private void checkIfNotificationsEnabled()
@@ -127,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response)
                     {
+                        hideLoading();
                         Log.d(TAG, response);
                         try {
                             JSONObject jsonResponse = new JSONObject(response);
@@ -146,15 +168,19 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }catch (JSONException e)
                         {
+                            hideLoading();
                             e.printStackTrace();
+                            Snackbar.make(mSongytButton, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
                         }
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
+                        hideLoading();
                         error.printStackTrace();
                         Log.d(TAG, error.toString());
+                        Snackbar.make(mSongytButton, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -222,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
         {
             if(intent.hasExtra("error"))
             {
-                Snackbar.make(mSongText, "Error: " + intent.getStringExtra("error"),
+                Snackbar.make(mSongytButton, "Error: " + intent.getStringExtra("error"),
                         Snackbar.LENGTH_LONG)
                         .show();
             }
