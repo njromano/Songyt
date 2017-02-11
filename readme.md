@@ -1,4 +1,7 @@
+
 # Songyt
+
+(Google Play Store link coming soon)
 
 Songyt helps find Youtube videos of the song you are listening to on your Android device. By capturing notification data and sending it to Youtube's API, it opens up the best matching video of the song playing on the Google Play Music or Spotify apps (Pandora and more coming soon!) based on artist and song title. 
 
