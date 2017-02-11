@@ -1,4 +1,4 @@
-
+ht
 # Songyt
 
 
@@ -17,7 +17,7 @@ Google Play Music OR Spotify
 
 ### Running Songyt
 
-Coming soon to Google Play. If you'd like to run an alpha version of the software, contact me via [njromano.com](njromano.com).
+Coming soon to Google Play. If you'd like to run an alpha version of the software, contact me via [njromano.com](http://www.njromano.com).
 
 After installation, you must allow Songyt to access your notifications via device settings. The application will prompt you when it detects it cannot read them and direct you to the correct settings page.
 
