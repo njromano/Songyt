@@ -1,48 +1,31 @@
 package com.njromano.songyt
 
 import android.app.NotificationManager
-import android.app.Service
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
-import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.Button
-import android.widget.CompoundButton
-import android.widget.ProgressBar
 import android.widget.Switch
-import android.widget.TextView
 
-import com.android.volley.AuthFailureError
 import com.android.volley.Request
 import com.android.volley.Response
-import com.android.volley.VolleyError
 import com.android.volley.toolbox.StringRequest
 
 import org.json.JSONException
 import org.json.JSONObject
-import org.w3c.dom.Text
 
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.ArrayList
-import java.util.HashMap
 
 import kotlinx.android.synthetic.main.activity_main.*;
 
@@ -52,7 +35,8 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 // TODO: Make it pretty
 // TODO: disable notifications from an action on the notification
 // TODO: test notificationlistener
-// TODO: clean code
+// TODO: clean NotificationListener
+// TODO: delete unused classes
 // TODO: add Pandora
 // TODO: add Pandora and Spotify to notifications
 // TODO: share directly from the app
@@ -71,7 +55,7 @@ class MainActivity : AppCompatActivity() {
                         .show()
             } else {
                 songyt_status_text.setText(R.string.songyt_status_2)
-                val request = getYoutubeInfo(
+                val request = createYouTubeInfoRequest(
                         intent.getStringExtra("song_title"),
                         intent.getStringExtra("artist_name")
                 )
@@ -130,6 +114,14 @@ class MainActivity : AppCompatActivity() {
         checkIfNotificationsEnabled()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        unregisterReceiver(receiver)
+    }
+
+    // -------------- private functions ------------
+
     private fun showLoading() {
         songyt_status_text.visibility = View.INVISIBLE
         progressbar.visibility = View.VISIBLE
@@ -162,57 +154,60 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getYoutubeInfo(song: String, artist: String): StringRequest? {
+    private fun createYouTubeInfoRequest(song: String, artist: String): StringRequest? {
         var url = ""
-        var volleyRequest: StringRequest
         try {
             url = ("https://www.googleapis.com/youtube/v3/search"
                     + "?part=snippet"
                     + "&q=" + URLEncoder.encode(song + " " + artist, "UTF-8")
                     + "&type=video"
-                    + "&key=" + URLEncoder.encode(resources.getString(R.string.API_KEY), "UTF-8"))
+                    + "&key=" + URLEncoder.encode(resources.getString(R.string.API_KEY),
+                    "UTF-8"))
 
 
-            volleyRequest = StringRequest(Request.Method.GET, url,
+            return StringRequest(Request.Method.GET, url,
                 Response.Listener { response ->
                     Log.d(TAG, response)
                     try {
                         val jsonResponse = JSONObject(response)
-                        val youtubeResults = ArrayList<YTResource>()
-                        youtubeResults.addAll(YTResource.fromJson(jsonResponse.getJSONArray("items")))
-                        if (youtubeResults.isEmpty()) {
+                        val ytResults = ArrayList<YTResource>()
+                        ytResults.addAll(YTResource.fromJson(
+                                jsonResponse.getJSONArray("items"))
+                        )
+                        if (ytResults.isEmpty()) {
+                            //
                             val i = Intent(ACTION_LISTENER)
                             i.putExtra("error", "No matching songs on YouTube.")
                             sendBroadcast(i)
                         } else {
-                            val result = "https://www.youtube.com/watch?v=" + youtubeResults[0].videoId
+                            val result = "https://www.youtube.com/watch?v=" + ytResults[0].videoId
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result)))
                             hideLoading()
                         }
                     } catch (e: JSONException) {
                         hideLoading()
                         e.printStackTrace()
-                        Snackbar.make(songyt_status_text, R.string.JSON_ERROR, Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(songyt_status_text,
+                                R.string.JSON_ERROR,
+                                Snackbar.LENGTH_SHORT)
+                                .show()
                     }
                 },
                 Response.ErrorListener { error ->
                     hideLoading()
                     error.printStackTrace()
                     Log.d(TAG, error.toString())
-                    Snackbar.make(songyt_status_text, R.string.REQUEST_ERROR, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(songyt_status_text,
+                            R.string.REQUEST_ERROR,
+                            Snackbar.LENGTH_LONG)
+                            .show()
             })
-            return volleyRequest
+
         } catch (e: UnsupportedEncodingException) {
             e.printStackTrace()
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-
-        unregisterReceiver(receiver)
     }
 }
