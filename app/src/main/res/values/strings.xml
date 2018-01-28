@@ -15,4 +15,8 @@
     <string name="notification_preference">com.njromano.songyt.NOTIFICATION_PREFERENCE</string>
     <string name="prefs">com.njromano.songyt.PREFERENCES</string>
     <string name="API_KEY">AIzaSyCC-9DSO8XmCfDz7W63V2aVeHxDrrScgVE</string>
+    <string name="please_enable_notifications">Please allow Songyt access to device notifications.</string>
+    <string name="notification_settings_action">SETTINGS</string>
+    <string name="REQUEST_ERROR">Sorry, an error has occurred. Please check your connection and try again.</string>
+    <string name="JSON_ERROR">An error occured upon reading YouTube results</string>
 </resources>
