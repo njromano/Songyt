@@ -1,13 +1,32 @@
 package com.njromano.songyt;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 
 /**
  * Created by Nick on 9/20/16.
@@ -17,6 +36,7 @@ public class NotificationListener extends NotificationListenerService {
     private String ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER";
     private String ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE";
     private NLServiceReceiver nlservicereceiver;
+    private int mLastNotificationID;
 
     @Override
     public void onCreate()
@@ -34,23 +54,112 @@ public class NotificationListener extends NotificationListenerService {
     {
         super.onListenerConnected();
         Log.d(TAG, "onListenerConnected");
-        StatusBarNotification[] sbns = getActiveNotifications();
+    StatusBarNotification[] sbns = getActiveNotifications();
         for(int i=0; i<sbns.length; i++)
-        {
-            Log.d(TAG, "NOTIFICATION RECEIVED: " + sbns[i].getPackageName() + "\n" + sbns[i].getNotification().toString() + "\n");
-        }
+    {
+        Log.d(TAG, "NOTIFICATION RECEIVED: " + sbns[i].getPackageName() + "\n" + sbns[i].getNotification().toString() + "\n");
     }
+}
 
     @Override
-    public void onNotificationPosted(StatusBarNotification sbn)
+    public void onNotificationPosted(final StatusBarNotification sbn)
     {
-        // not needed in this implementation
+        super.onNotificationPosted(sbn);
+        Log.d(TAG, "onNotificationPosted");
+        Log.d(TAG, "NOTIFICATION POSTED: " + sbn.getPackageName() + "\n" + sbn.getNotification().toString() + "\n" + sbn.getNotification().extras.toString() + "\n");
+
+        // get notification preference
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
+        if(!preferences.getBoolean(getString(R.string.notification_preference), false))
+            return;
+
+        if (sbn.getPackageName().equals("com.google.android.music"))
+        {
+            final String songTitle = sbn.getNotification().extras.get("android.title").toString();
+            final String songArtist = sbn.getNotification().extras.get("android.text").toString();
+            String url = "";
+            try {
+                url = "https://www.googleapis.com/youtube/v3/search"
+                        + "?part=snippet"
+                        + "&q=" + URLEncoder.encode(songTitle + " " + songArtist, "UTF-8")
+                        + "&type=video"
+                        + "&key=" + URLEncoder.encode(getResources().getString(R.string.API_KEY), "UTF-8");
+            } catch (UnsupportedEncodingException e)
+            {
+                e.printStackTrace();
+            }
+
+            StringRequest r = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response)
+                        {
+                            ArrayList<YTResource> ytresults = new ArrayList<>();
+                            Log.d(TAG, response);
+                            try {
+                                JSONObject jsonResponse = new JSONObject(response);
+                                ytresults.clear();
+                                ytresults.addAll(YTResource.fromJson(jsonResponse.getJSONArray("items")));
+                                if(ytresults.isEmpty()) {
+                                    Intent i = new Intent(ACTION_LISTENER);
+                                    i.putExtra("error", "No matching songs on YouTube.");
+                                    sendBroadcast(i);
+                                }
+                                else
+                                {
+                                    String url = "https://www.youtube.com/watch?v="
+                                            + ytresults.get(0).getVideoId();
+                                    NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                    // build a new notification
+                                    NotificationCompat.Builder ncomp = new NotificationCompat.Builder(getApplicationContext());
+                                    ncomp.setContentTitle(songTitle + " by " + songArtist);
+                                    ncomp.setContentText("Tap to open in YouTube.");
+                                    ncomp.setTicker("Songyt");
+                                    ncomp.setSmallIcon(R.mipmap.ic_launcher);
+                                    ncomp.setAutoCancel(true);
+                                    ncomp.setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(Intent.ACTION_VIEW, Uri.parse(url)),PendingIntent.FLAG_UPDATE_CURRENT));
+                                    nManager.notify(mLastNotificationID,ncomp.build());
+                                }
+                            }catch (JSONException e)
+                            {
+                                e.printStackTrace();
+                                //Snackbar.make(mSongytStatusText, "Sorry, an error has occurred.", Snackbar.LENGTH_SHORT).show();
+                                Toast.makeText(getBaseContext(),
+                                        "Sorry, an error has occured with Songyt.",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error)
+                {
+                    error.printStackTrace();
+                    Log.d(TAG, error.toString());
+                    //Snackbar.make(mSongytStatusText, "Sorry, an error has occurred. Please check your internet connection and try again.", Snackbar.LENGTH_LONG).show();
+                    Toast.makeText(getBaseContext(),
+                            "Sorry, an error has occurred with Songyt. Please check your internet connection and try again.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            MySingleton.getInstance(getApplicationContext()).addToRequestQueue(r);
+        }
+
+
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn)
     {
-        // not needed in this implementation
+        super.onNotificationRemoved(sbn);
+        Log.d(TAG, "onNotificationRemoved");
+        Log.d(TAG, "NOTIFICATION REMOVED: " + sbn.getPackageName() + "\n" + sbn.getNotification().toString() + "\n" + sbn.getNotification().extras.toString() + "\n");
+
+        if (sbn.getPackageName().equals("com.google.android.music"))
+        {
+            NotificationManager notificationManager =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.cancel(mLastNotificationID);
+        }
     }
 
     @Override

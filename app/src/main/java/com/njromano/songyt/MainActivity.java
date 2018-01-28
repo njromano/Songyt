@@ -1,10 +1,14 @@
 package com.njromano.songyt;
 
+import android.app.NotificationManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,7 +23,9 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -40,12 +46,19 @@ import java.util.Map;
 
 import static android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;
 
-// TODO: create cohesive walkthrough of user flow
+// TODO: create cohesive walk-through of user flow
+// TODO: Make it pretty
+// TODO: disable notifications from an action on the notification
+// TODO: test notificationlistener
+// TODO: clean code
+// TODO: add Pandora
+// TODO: add Pandora and Spotify to notifications
 
 public class MainActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     private String ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER";
     private String ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE";
+    private String PREFS = "com.njromano.songyt.PREFERENCES";
     private TextView mSongText, mArtistText, mLinkText;
     private TextView mSongytStatusText;
     private NotificationReceiver nReceiver;
@@ -56,35 +69,53 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // create views
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         mSongytStatusText = (TextView) findViewById(R.id.songyt_status_text);
         mProgressBar = (ProgressBar) findViewById(R.id.progressbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Switch notificationSwitch = (Switch) findViewById(R.id.notification_switch);
+
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.prefs),MODE_PRIVATE);
+        notificationSwitch.setChecked(sharedPreferences.getBoolean(getString(R.string.notification_preference),false));
+
+        notificationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.prefs),MODE_PRIVATE);
+                sharedPreferences.edit()
+                        .putBoolean(getString(R.string.notification_preference),b)
+                        .apply();
+                if(!b)
+                {
+                    // delete current notification(s)
+                    NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    nm.cancelAll();
+                }
+            }
+        });
+
+        // set onclick to look for a song
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
                 Intent i = new Intent(ACTION_SERVICE);
                 i.putExtra("command", "getSong");
                 sendBroadcast(i);
                 showLoading();
-                //toggleNotificationListenerService();
             }
         });
 
-
+        // create data objects used in this activity
         mSong = new Song();
         mYTResources = new ArrayList<>();
 
-        //mSongText = (TextView) findViewById(R.id.songtext);
-        //mArtistText = (TextView) findViewById(R.id.artisttext);
-        //mLinkText = (TextView) findViewById(R.id.linktext);
-
+        // register the notificationlistener so that we can pass information between
+        // this activity and the listener
         nReceiver = new NotificationReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_LISTENER);

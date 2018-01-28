@@ -8,6 +8,7 @@
     tools:context="com.njromano.songyt.MainActivity">
 
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
@@ -21,38 +22,60 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main"
-        android:visibility="gone" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/songyt_status_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:lineSpacingExtra="24sp"
+            android:text="@string/songyt_button_text"
+            android:textAlignment="center"
+            android:textColor="@color/colorPrimary"
+            android:textSize="36sp"
+            app:layout_anchorGravity="center_vertical|center_horizontal" />
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:visibility="invisible"
+            app:layout_anchorGravity="center_vertical|center_horizontal" />
+
+        <Switch
+            android:id="@+id/notification_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="74dp"
+            android:layout_weight="1"
+            android:text="Notification?"
+            app:layout_anchorGravity="right"
+            tools:layout_editor_absoluteX="268dp" />
+    </RelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_action_search" />
 
-    <TextView
-        android:text="@string/songyt_button_text"
-        android:layout_width="wrap_content"
+    <include
+        layout="@layout/content_main"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/songyt_status_text"
-        app:layout_anchorGravity="center_vertical|center_horizontal"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:textColor="@color/colorPrimary"
-        android:textSize="36sp"
-        android:textAlignment="center"
-        android:lineSpacingExtra="24sp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressbar"
-        app:layout_anchorGravity="center_vertical|center_horizontal"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
 </android.support.design.widget.CoordinatorLayout>

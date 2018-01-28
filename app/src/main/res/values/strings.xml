@@ -9,4 +9,9 @@
     <string name="songyt_hint_1">Tap the search button to find the currently playing song on YouTube.</string>
     <string name="songyt_status_1">Ready to find song on YouTube…</string>
     <string name="songyt_status_2">Song found! Pulling up YouTube…</string>
+    <string name="notification_title">Songyt Notification</string>
+    <string name="notification_message">Test Songyt Notification</string>
+    <string name="ticker_text">Ticker Text</string>
+    <string name="notification_preference">com.njromano.songyt.NOTIFICATION_PREFERENCE</string>
+    <string name="prefs">com.njromano.songyt.PREFERENCES</string>
 </resources>
