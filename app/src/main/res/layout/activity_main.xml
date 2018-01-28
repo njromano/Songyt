@@ -33,6 +33,8 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
             android:lineSpacingExtra="24sp"
             android:text="@string/songyt_button_text"
             android:textAlignment="center"
