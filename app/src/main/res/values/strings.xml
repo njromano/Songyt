@@ -14,4 +14,5 @@
     <string name="ticker_text">Ticker Text</string>
     <string name="notification_preference">com.njromano.songyt.NOTIFICATION_PREFERENCE</string>
     <string name="prefs">com.njromano.songyt.PREFERENCES</string>
+    <string name="API_KEY">AIzaSyCC-9DSO8XmCfDz7W63V2aVeHxDrrScgVE</string>
 </resources>
