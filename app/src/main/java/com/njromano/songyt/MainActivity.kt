@@ -27,18 +27,18 @@ import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.ArrayList
 
-import kotlinx.android.synthetic.main.activity_main.*;
+import kotlinx.android.synthetic.main.activity_main.*
 
 import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 
 // TODO: create cohesive walk-through of user flow
 // TODO: Make it pretty
 // TODO: disable notifications from an action on the notification
+// TODO: show more results in MainActivity
 // TODO: test notificationlistener
-// TODO: clean NotificationListener
 // TODO: delete unused classes
 // TODO: add Pandora
-// TODO: add Pandora and Spotify to notifications
+// TODO: add IHeartRadio
 // TODO: share directly from the app
 
 class MainActivity : AppCompatActivity() {
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // set onclick to look for a song
-        var fab = findViewById<View>(R.id.fab) as FloatingActionButton
+        val fab = findViewById<View>(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
             val i = Intent(ACTION_SERVICE)
             i.putExtra("command", "getSong")
@@ -155,9 +155,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createYouTubeInfoRequest(song: String, artist: String): StringRequest? {
-        var url = ""
         try {
-            url = ("https://www.googleapis.com/youtube/v3/search"
+            val url = ("https://www.googleapis.com/youtube/v3/search"
                     + "?part=snippet"
                     + "&q=" + URLEncoder.encode(song + " " + artist, "UTF-8")
                     + "&type=video"
