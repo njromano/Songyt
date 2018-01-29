@@ -17,8 +17,11 @@ import android.os.Build
 import android.os.Build.VERSION_CODES.O
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.support.annotation.IntegerRes
 import android.support.annotation.RequiresApi
 import android.util.Log
+import android.view.View
+import android.widget.RemoteViews
 import android.widget.Toast
 
 import com.android.volley.Request
@@ -30,6 +33,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 import java.io.UnsupportedEncodingException
+import java.lang.reflect.Field
 import java.net.URI
 import java.net.URLEncoder
 import java.util.*
@@ -209,13 +213,42 @@ class NotificationListener : NotificationListenerService() {
                 songTitle = tickerText[0].trim()
                 artistName = tickerText[1].trim()
                 Log.d(TAG, "SONG FOUND: $artistName - $songTitle\n")
-                if (songTitle.equals("") || artistName.equals(""))
+                if (songTitle == "" || artistName == "")
                     return null
                 return Pair(songTitle, artistName)
             }
             noti.packageName == MUSIC_PACKAGES.PANDORA -> {
                 Log.d(TAG, "PANDORA: " + noti.notification.extras.toString())
-                // TODO get Pandora info
+                try {
+                    val remoteviews = noti.notification.bigContentView as RemoteViews
+                    val pandoraClass = remoteviews.javaClass
+                    val text = HashMap<Int, String>()
+                    val outerFields = pandoraClass.getDeclaredFields() as Array<Field>
+                    for (i in 0 until outerFields.size) {
+                        if (outerFields[i].name != "mActions") continue
+                        outerFields[i].isAccessible = true
+                        val actions = outerFields[i].get(remoteviews) as ArrayList<Object>
+
+                        // get song title
+                        var songField = actions[0].javaClass.getDeclaredField("value")
+                        songField.isAccessible = true
+                        val songTitle = songField.get(actions[0]).toString().trim()
+
+                        // get artist name
+                        var artistField = actions[1].javaClass.getDeclaredField("value")
+                        artistField.isAccessible = true
+                        val artistName = artistField.get(actions[1]).toString().trim()
+
+                        Log.d(TAG, "SONG FOUND: $artistName - $songTitle\n")
+                        if (songTitle == "" || artistName == "")
+                            return null
+                        return Pair(songTitle, artistName)
+                    }
+                }
+                catch (e: Exception) {
+                    e.printStackTrace();
+                }
+
                 return null
             }
             noti.packageName == MUSIC_PACKAGES.IHEART -> {

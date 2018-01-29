@@ -32,7 +32,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 
 // TODO: create cohesive walk-through of user flow
-// TODO: Make it pretty
 // TODO: disable notifications from an action on the notification
 // TODO: show more results in MainActivity
 // TODO: test notificationlistener
@@ -40,6 +39,8 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 // TODO: add Pandora
 // TODO: add IHeartRadio
 // TODO: share directly from the app
+// TODO: better app icon and theme
+// TODO: Voice intents https://developers.google.com/voice-actions/system/
 
 class MainActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
