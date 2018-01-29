@@ -316,13 +316,13 @@ class SongScraper : NotificationListenerService() {
                     )
             val r = StringRequest(Request.Method.GET, url,
                     Response.Listener { response ->
-                        val ytresults = ArrayList<YTResource>()
+                        val ytresults = ArrayList<YouTubeResult>()
                         Log.d(TAG, response)
                         try {
                             val jsonResponse = JSONObject(response)
                             ytresults.clear()
                             ytresults.addAll(
-                                    YTResource.fromJson(jsonResponse.getJSONArray("items"))
+                                    YouTubeResult.fromJson(jsonResponse.getJSONArray("items"))
                             )
                             if (ytresults.isEmpty()) {
                                 val i = Intent(ACTION_LISTENER)
@@ -345,7 +345,7 @@ class SongScraper : NotificationListenerService() {
                         Toast.LENGTH_SHORT).show()
             })
 
-            MySingleton.getInstance(applicationContext).addToRequestQueue(r)
+            VolleyRequestQueue.getInstance(applicationContext).addToRequestQueue(r)
 
         } catch (e: Exception) {
             e.printStackTrace()

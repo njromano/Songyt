@@ -10,10 +10,10 @@ import java.util.ArrayList;
  * Created by Nick on 9/21/16.
  * Class for YouTube Resources to be pulled from JSON
  */
-public class YTResource {
+public class YouTubeResult {
     private String videoId, description, title;
 
-    public YTResource(JSONObject object)
+    public YouTubeResult(JSONObject object)
     {
         try {
             this.videoId = object.getJSONObject("id").getString("videoId");
@@ -25,13 +25,13 @@ public class YTResource {
         }
     }
 
-    public static ArrayList<YTResource> fromJson(JSONArray jsonObjects)
+    public static ArrayList<YouTubeResult> fromJson(JSONArray jsonObjects)
     {
-        ArrayList<YTResource> resources = new ArrayList<>();
+        ArrayList<YouTubeResult> resources = new ArrayList<>();
         for(int i=0; i< jsonObjects.length(); i++)
         {
             try {
-                resources.add(new YTResource(jsonObjects.getJSONObject(i)));
+                resources.add(new YouTubeResult(jsonObjects.getJSONObject(i)));
             } catch (JSONException e)
             {
                 e.printStackTrace();

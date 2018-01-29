@@ -15,6 +15,6 @@ public class autostart extends BroadcastReceiver
     {
         Intent intent = new Intent(context, SongScraper.class);
         context.startService(intent);
-        Log.i("Autostart", "started");
+        Log.i("autostart", "started");
     }
 }

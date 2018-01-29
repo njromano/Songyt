@@ -35,8 +35,6 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 // TODO: disable notifications from an action on the notification
 // TODO: show more results in MainActivity
 // TODO: test notificationlistener
-// TODO: delete unused classes
-// TODO: add IHeartRadio
 // TODO: add Apple Music
 // TODO: add Amazon Music
 // TODO: share directly from the app
@@ -62,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                         intent.getStringExtra("artist_name")
                 )
                 if(request != null) {
-                    MySingleton.getInstance(applicationContext).addToRequestQueue(request)
+                    VolleyRequestQueue.getInstance(applicationContext).addToRequestQueue(request)
                     Log.d(TAG, request.toString())
                 }
             }
@@ -171,8 +169,8 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, response)
                     try {
                         val jsonResponse = JSONObject(response)
-                        val ytResults = ArrayList<YTResource>()
-                        ytResults.addAll(YTResource.fromJson(
+                        val ytResults = ArrayList<YouTubeResult>()
+                        ytResults.addAll(YouTubeResult.fromJson(
                                 jsonResponse.getJSONArray("items"))
                         )
                         if (ytResults.isEmpty()) {
