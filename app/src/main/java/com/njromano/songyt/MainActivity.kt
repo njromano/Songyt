@@ -36,8 +36,9 @@ import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 // TODO: show more results in MainActivity
 // TODO: test notificationlistener
 // TODO: delete unused classes
-// TODO: add Pandora
 // TODO: add IHeartRadio
+// TODO: add Apple Music
+// TODO: add Amazon Music
 // TODO: share directly from the app
 // TODO: better app icon and theme
 // TODO: Voice intents https://developers.google.com/voice-actions/system/

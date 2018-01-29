@@ -1,8 +1,6 @@
 package com.njromano.songyt
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,38 +8,29 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.net.Uri
-import android.net.wifi.WifiConfiguration
 import android.os.Build
-import android.os.Build.VERSION_CODES.O
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.support.annotation.IntegerRes
-import android.support.annotation.RequiresApi
 import android.util.Log
-import android.view.View
 import android.widget.RemoteViews
 import android.widget.Toast
 
 import com.android.volley.Request
 import com.android.volley.Response
-import com.android.volley.VolleyError
 import com.android.volley.toolbox.StringRequest
 
 import org.json.JSONException
 import org.json.JSONObject
 
-import java.io.UnsupportedEncodingException
 import java.lang.reflect.Field
-import java.net.URI
 import java.net.URLEncoder
 import java.util.*
 
 /**
  * Created by Nick on 9/20/16. -
  */
-class NotificationListener : NotificationListenerService() {
+class SongScraper : NotificationListenerService() {
     private val TAG = this.javaClass.simpleName
     private val ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER"
     private val ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE"
@@ -53,12 +42,14 @@ class NotificationListener : NotificationListenerService() {
         const val SPOTIFY = "com.spotify.music"
         const val PANDORA = "com.pandora.android"
         const val IHEART = "com.clearchannel.iheartradio.controller"
-        val SUPPORTED = arrayOf(GPM, SPOTIFY, PANDORA, IHEART)
+        const val APPLE = "com.apple.android.music"
+        const val AMAZON = "com.amazon.mp3"
+        val SUPPORTED = arrayOf(GPM, SPOTIFY, PANDORA, IHEART, APPLE, AMAZON)
     }
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "NotificationListener created")
+        Log.d(TAG, "SongScraper created")
         nlservicereceiver = NLServiceReceiver()
         val filter = IntentFilter()
         filter.addAction(ACTION_SERVICE)
@@ -114,7 +105,7 @@ class NotificationListener : NotificationListenerService() {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "NotificationListener destroyed")
+        Log.d(TAG, "SongScraper destroyed")
         super.onDestroy()
         unregisterReceiver(nlservicereceiver)
     }
@@ -124,7 +115,7 @@ class NotificationListener : NotificationListenerService() {
             if (intent.getStringExtra("command") == "getSong") {
                 // search in current active notifications and broadcast the first result known to be
                 // from a music application to the notification listener in MainActivity
-                for (sbn in this@NotificationListener.activeNotifications) {
+                for (sbn in this@SongScraper.activeNotifications) {
                     val song = scrapeSongInfo(sbn)
                     if(song == null) {
                         val noSongIntent = Intent(ACTION_LISTENER)
@@ -191,21 +182,26 @@ class NotificationListener : NotificationListenerService() {
         val artistName: String
         when {
             noti.packageName == MUSIC_PACKAGES.GPM -> {
+
                 // Look for songs being played by Google Play Music.
                 // Notification extras:
                 //  android.title - song title
                 //  android.text - artist name
+
                 songTitle = noti.notification.extras.get("android.title").toString().trim()
                 artistName = noti.notification.extras.get("android.text").toString().trim()
                 Log.d(TAG, "SONG FOUND: $artistName - $songTitle\n")
                 if (songTitle.equals("") || artistName.equals(""))
                     return null
                 return Pair(songTitle, artistName)
+
             }
             noti.packageName == MUSIC_PACKAGES.SPOTIFY -> {
+
                 // Look for songs being played by Spotify
                 // Notification tickerText:
                 // "Song Title — Artist Name
+
                 val tickerText = noti.notification.tickerText
                         .toString()
                         .split("—".toRegex())
@@ -216,13 +212,17 @@ class NotificationListener : NotificationListenerService() {
                 if (songTitle == "" || artistName == "")
                     return null
                 return Pair(songTitle, artistName)
+
             }
             noti.packageName == MUSIC_PACKAGES.PANDORA -> {
+
+                // Look for songs being played by Pandora
+                // Within RemoteViews, using Reflection
+
                 Log.d(TAG, "PANDORA: " + noti.notification.extras.toString())
                 try {
                     val remoteviews = noti.notification.bigContentView as RemoteViews
                     val pandoraClass = remoteviews.javaClass
-                    val text = HashMap<Int, String>()
                     val outerFields = pandoraClass.getDeclaredFields() as Array<Field>
                     for (i in 0 until outerFields.size) {
                         if (outerFields[i].name != "mActions") continue
@@ -230,14 +230,14 @@ class NotificationListener : NotificationListenerService() {
                         val actions = outerFields[i].get(remoteviews) as ArrayList<Object>
 
                         // get song title
-                        var songField = actions[0].javaClass.getDeclaredField("value")
+                        val songField = actions[0].javaClass.getDeclaredField("value")
                         songField.isAccessible = true
-                        val songTitle = songField.get(actions[0]).toString().trim()
+                        songTitle = songField.get(actions[0]).toString().trim()
 
                         // get artist name
-                        var artistField = actions[1].javaClass.getDeclaredField("value")
+                        val artistField = actions[1].javaClass.getDeclaredField("value")
                         artistField.isAccessible = true
-                        val artistName = artistField.get(actions[1]).toString().trim()
+                        artistName = artistField.get(actions[1]).toString().trim()
 
                         Log.d(TAG, "SONG FOUND: $artistName - $songTitle\n")
                         if (songTitle == "" || artistName == "")
@@ -246,14 +246,58 @@ class NotificationListener : NotificationListenerService() {
                     }
                 }
                 catch (e: Exception) {
-                    e.printStackTrace();
+                    e.printStackTrace()
                 }
-
                 return null
+
             }
             noti.packageName == MUSIC_PACKAGES.IHEART -> {
-                Log.d(TAG, "IHEART: " + noti.notification.extras.toString())
-                // TODO get IHeartRadioInfo
+
+                // Look for songs being played by IHeartRadio
+                try {
+                    val remoteviews = noti.notification.bigContentView as RemoteViews
+                    val iheartClass = remoteviews.javaClass
+                    val outerFields = iheartClass.getDeclaredFields() as Array<Field>
+                    for (i in 0 until outerFields.size) {
+                        if (outerFields[i].name != "mActions") continue
+                        outerFields[i].isAccessible = true
+                        val actions = outerFields[i].get(remoteviews) as ArrayList<Object>
+
+                        // get song title
+                        val songField = actions[4].javaClass.getDeclaredField("value")
+                        songField.isAccessible = true
+                        songTitle = songField.get(actions[4]).toString().trim()
+
+                        // get artist name
+                        val artistField = actions[6].javaClass.getDeclaredField("value")
+                        artistField.isAccessible = true
+                        artistName = artistField.get(actions[6]).toString().trim()
+
+                        Log.d(TAG, "SONG FOUND: $artistName - $songTitle\n")
+                        if (songTitle == "" || artistName == "")
+                            return null
+                        return Pair(songTitle, artistName)
+                    }
+                }
+                catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return null
+            }
+            noti.packageName ==  MUSIC_PACKAGES.APPLE -> {
+
+                // Look for songs being played by Apple Music
+
+                Log.d(TAG, "APPLE: " + noti.notification.extras.toString())
+                // TODO get Apple Music info
+                return null
+            }
+            noti.packageName ==  MUSIC_PACKAGES.AMAZON -> {
+
+                // Look for songs being played by Apple Music
+
+                Log.d(TAG, "AMAZON: " + noti.notification.extras.toString())
+                // TODO get Amazon Music info
                 return null
             }
             else -> return null

@@ -13,7 +13,7 @@ public class autostart extends BroadcastReceiver
 {
     public void onReceive(Context context, Intent arg1)
     {
-        Intent intent = new Intent(context,NotificationListener.class);
+        Intent intent = new Intent(context, SongScraper.class);
         context.startService(intent);
         Log.i("Autostart", "started");
     }
