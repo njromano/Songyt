@@ -25,19 +25,19 @@ import org.json.JSONObject
 
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
-import java.util.ArrayList
 
 import kotlinx.android.synthetic.main.activity_main.*
 
 import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import java.util.*
 
 // TODO: create cohesive walk-through of user flow
-// TODO: disable notifications from an action on the notification
-// TODO: show more results in MainActivity
-// TODO: test notificationlistener
-// TODO: add Apple Music
-// TODO: add Amazon Music
-// TODO: share directly from the app
+// TODO: disable notifications with settings menu
+// TODO: MainActivity re-design
+// TODO: Revisit search request / response logic
+// TODO: share directly from the notification / app
 // TODO: better app icon and theme
 // TODO: Voice intents https://developers.google.com/voice-actions/system/
 
@@ -45,6 +45,9 @@ class MainActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private val ACTION_LISTENER = "com.njromano.songyt.NOTIFICATION_LISTENER"
     private val ACTION_SERVICE = "com.njromano.songyt.NOTIFICATION_SERVICE"
+    private var mResults = ArrayList<YouTubeResult>()
+    private var mResultsAdapter = ResultsAdapter(mResults)
+
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.hasExtra("error")) {
@@ -72,8 +75,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
-        setSupportActionBar(toolbar)
+        //val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
+        //setSupportActionBar(toolbar)
 
         val notificationSwitch = findViewById<View>(R.id.notification_switch) as Switch
         notificationSwitch.isChecked = applicationContext
@@ -92,6 +95,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val recycler = results_view as RecyclerView
+        recycler.adapter = mResultsAdapter
+        recycler.layoutManager = LinearLayoutManager(this)
+
+
         // set onclick to look for a song
         val fab = findViewById<View>(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
@@ -99,6 +107,7 @@ class MainActivity : AppCompatActivity() {
             i.putExtra("command", "getSong")
             sendBroadcast(i)
             showLoading()
+            recycler.invalidate()
         }
 
         // register the notificationlistener so that we can pass information between
@@ -179,8 +188,10 @@ class MainActivity : AppCompatActivity() {
                             i.putExtra("error", "No matching songs on YouTube.")
                             sendBroadcast(i)
                         } else {
-                            val result = "https://www.youtube.com/watch?v=" + ytResults[0].videoId
-                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result)))
+                            //val result = "https://www.youtube.com/watch?v=" + ytResults[0].videoId
+                            //startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result)))
+                            mResultsAdapter.setItems(ytResults)
+                            mResultsAdapter.notifyDataSetChanged()
                             hideLoading()
                         }
                     } catch (e: JSONException) {

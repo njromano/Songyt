@@ -1,11 +1,20 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="color">#37474F</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorBackground">@color/primary_light</item>
+        <item name="android:colorForeground">@color/primary_text</item>
+        <item name="android:navigationBarColor">@color/primary_dark</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorPrimaryInverse">@color/icons</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+        <item name="android:actionBarSize">56dp</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -16,5 +25,13 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Theme1" parent="Theme.AppCompat" >
+        <item name="colorPrimary">#607D8B</item>
+        <item name="colorPrimaryDark">#37474F</item>
+        <item name="android:navigationBarColor">#263238</item>
+        <item name="colorAccent">#7C4DFF</item>
+        <item name="android:colorBackground">@android:color/background_light</item>
+    </style>
 
 </resources>
